@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
@@ -7,10 +7,59 @@ import { PackingListHeader } from '@/components/packing-list/PackingListHeader';
 import { CategorySection } from '@/components/packing-list/CategorySection';
 import { ItemStatus } from '@/components/packing-list/PackingItem';
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from '@/contexts/AuthContext';
+import { DuplicateTaskAlert } from '@/components/tasks/DuplicateTaskAlert';
+import { TaskStatusChart } from '@/components/tasks/TaskStatusChart';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { UserRole, PackingTask } from '@/types/auth';
+import { 
+  Select, 
+  SelectContent, 
+  SelectGroup, 
+  SelectItem, 
+  SelectLabel, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
+import { User, Trash2, UserPlus, Edit, Download } from 'lucide-react';
+
+// Type for a complete category with items
+interface Category {
+  id: string;
+  name: string;
+  icon: string;
+  items: PackingTask[];
+}
+
+// Type for a task assignment conflict
+interface TaskConflict {
+  taskId: string;
+  taskName: string;
+  assignees: string[];
+}
 
 const PackingListDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { toast } = useToast();
+  const { user, users } = useAuth();
+  
+  const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
+  const [isEditTaskOpen, setIsEditTaskOpen] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<string>('');
+  const [members, setMembers] = useState<{ id: string; name: string }[]>([
+    { id: 'user1', name: 'Alex' },
+    { id: 'user2', name: 'Jordan' },
+    { id: 'user3', name: 'Taylor' },
+    { id: 'user4', name: 'Casey' }
+  ]);
+  
+  // Task being edited
+  const [currentTask, setCurrentTask] = useState<PackingTask | null>(null);
+  
+  // Task conflicts detection
+  const [taskConflicts, setTaskConflicts] = useState<TaskConflict[]>([]);
   
   // In a real app, this data would be fetched from an API
   const [packingList, setPackingList] = useState({
@@ -32,8 +81,12 @@ const PackingListDetail = () => {
             category: 'Equipment',
             status: 'packed' as ItemStatus,
             assignee: 'Alex',
+            assigneeId: 'user1',
             quantity: 1,
-            notes: 'Make sure to pack the rain cover as well!'
+            notes: 'Make sure to pack the rain cover as well!',
+            categoryId: 'c1',
+            listId: '1',
+            createdAt: new Date().toISOString()
           },
           {
             id: 'i2',
@@ -41,8 +94,12 @@ const PackingListDetail = () => {
             category: 'Equipment',
             status: 'packed' as ItemStatus,
             assignee: 'Jordan',
+            assigneeId: 'user2',
             quantity: 3,
-            notes: 'One for each person'
+            notes: 'One for each person',
+            categoryId: 'c1',
+            listId: '1',
+            createdAt: new Date().toISOString()
           },
           {
             id: 'i3',
@@ -50,7 +107,11 @@ const PackingListDetail = () => {
             category: 'Equipment',
             status: 'to-pack' as ItemStatus,
             assignee: 'Taylor',
-            quantity: 4
+            assigneeId: 'user3',
+            quantity: 4,
+            categoryId: 'c1',
+            listId: '1',
+            createdAt: new Date().toISOString()
           }
         ]
       },
@@ -65,7 +126,11 @@ const PackingListDetail = () => {
             category: 'Cooking',
             status: 'to-pack' as ItemStatus,
             assignee: 'Jordan',
-            quantity: 1
+            assigneeId: 'user2',
+            quantity: 1,
+            categoryId: 'c2',
+            listId: '1',
+            createdAt: new Date().toISOString()
           },
           {
             id: 'i5',
@@ -73,8 +138,12 @@ const PackingListDetail = () => {
             category: 'Cooking',
             status: 'delivered' as ItemStatus,
             assignee: 'Casey',
+            assigneeId: 'user4',
             quantity: 1,
-            notes: 'The large blue one'
+            notes: 'The large blue one',
+            categoryId: 'c2',
+            listId: '1',
+            createdAt: new Date().toISOString()
           },
           {
             id: 'i6',
@@ -82,8 +151,12 @@ const PackingListDetail = () => {
             category: 'Cooking',
             status: 'packed' as ItemStatus,
             assignee: 'Alex',
+            assigneeId: 'user1',
             quantity: 1,
-            notes: 'Spatula, tongs, knives, etc.'
+            notes: 'Spatula, tongs, knives, etc.',
+            categoryId: 'c2',
+            listId: '1',
+            createdAt: new Date().toISOString()
           }
         ]
       },
@@ -98,7 +171,11 @@ const PackingListDetail = () => {
             category: 'Safety',
             status: 'delivered' as ItemStatus,
             assignee: 'Taylor',
-            quantity: 1
+            assigneeId: 'user3',
+            quantity: 1,
+            categoryId: 'c3',
+            listId: '1',
+            createdAt: new Date().toISOString()
           },
           {
             id: 'i8',
@@ -106,13 +183,94 @@ const PackingListDetail = () => {
             category: 'Safety',
             status: 'to-pack' as ItemStatus,
             assignee: 'Casey',
+            assigneeId: 'user4',
             quantity: 4,
-            notes: 'One for each person + extra batteries'
+            notes: 'One for each person + extra batteries',
+            categoryId: 'c3',
+            listId: '1',
+            createdAt: new Date().toISOString()
           }
         ]
       }
-    ]
+    ] as Category[]
   });
+  
+  // Task progress data for charts
+  const [memberTaskProgress, setMemberTaskProgress] = useState({
+    user1: {
+      name: 'Alex',
+      total: 3,
+      packed: 2,
+      delivered: 0,
+      toPack: 1,
+      percentage: 66.7
+    },
+    user2: {
+      name: 'Jordan',
+      total: 2,
+      packed: 1,
+      delivered: 0,
+      toPack: 1,
+      percentage: 50
+    },
+    user3: {
+      name: 'Taylor',
+      total: 2,
+      packed: 0,
+      delivered: 1,
+      toPack: 1,
+      percentage: 50
+    },
+    user4: {
+      name: 'Casey',
+      total: 2,
+      packed: 0,
+      delivered: 1,
+      toPack: 1,
+      percentage: 50
+    }
+  });
+  
+  // Check for task conflicts (same task assigned to multiple people)
+  useEffect(() => {
+    const assignmentMap = new Map<string, string[]>();
+    
+    packingList.categories.forEach(category => {
+      category.items.forEach(item => {
+        if (item.assignee) {
+          const assignees = assignmentMap.get(item.name) || [];
+          if (!assignees.includes(item.assignee)) {
+            assignees.push(item.assignee);
+            assignmentMap.set(item.name, assignees);
+          }
+        }
+      });
+    });
+    
+    const conflicts: TaskConflict[] = [];
+    assignmentMap.forEach((assignees, taskName) => {
+      if (assignees.length > 1) {
+        // Find the task ID for this conflict
+        let taskId = '';
+        outer: for (const category of packingList.categories) {
+          for (const item of category.items) {
+            if (item.name === taskName) {
+              taskId = item.id;
+              break outer;
+            }
+          }
+        }
+        
+        conflicts.push({
+          taskId,
+          taskName,
+          assignees
+        });
+      }
+    });
+    
+    setTaskConflicts(conflicts);
+  }, [packingList]);
   
   const handleItemStatusChange = (itemId: string, newStatus: ItemStatus) => {
     // Update the item status in our state
@@ -132,6 +290,46 @@ const PackingListDetail = () => {
     toast({
       title: "Item status updated",
       description: `Item has been marked as ${newStatus.replace('-', ' ')}`,
+    });
+    
+    // Update task progress - in a real app this would be calculated from the backend
+    updateTaskProgress(itemId, newStatus);
+  };
+  
+  const updateTaskProgress = (itemId: string, newStatus: ItemStatus) => {
+    // Find the assignee for this task
+    let assigneeId = '';
+    packingList.categories.forEach(category => {
+      const item = category.items.find(i => i.id === itemId);
+      if (item && item.assigneeId) {
+        assigneeId = item.assigneeId;
+      }
+    });
+    
+    if (!assigneeId) return;
+    
+    // Update progress data - in a real app this would be calculated on the backend
+    setMemberTaskProgress(prev => {
+      if (!prev[assigneeId as keyof typeof prev]) return prev;
+      
+      const memberProgress = {...prev[assigneeId as keyof typeof prev]};
+      
+      // Update counts based on status change
+      if (newStatus === 'packed') {
+        memberProgress.packed += 1;
+        memberProgress.toPack -= 1;
+      } else if (newStatus === 'delivered') {
+        memberProgress.delivered += 1;
+        memberProgress.packed -= 1;
+      }
+      
+      // Recalculate percentage
+      memberProgress.percentage = ((memberProgress.packed + memberProgress.delivered) / memberProgress.total) * 100;
+      
+      return {
+        ...prev,
+        [assigneeId]: memberProgress
+      };
     });
   };
   
@@ -156,21 +354,176 @@ const PackingListDetail = () => {
     });
   };
   
+  const handleAddMember = () => {
+    if (!selectedMember) return;
+    
+    // In a real app, this would send an invitation to the member
+    toast({
+      title: "Member Added",
+      description: `${selectedMember} has been added to this packing list.`,
+    });
+    
+    setIsAddMemberOpen(false);
+    setSelectedMember('');
+  };
+  
+  const handleEditTask = () => {
+    if (!currentTask) return;
+    
+    // Find the task and update it
+    const updatedCategories = packingList.categories.map(category => {
+      if (category.id === currentTask.categoryId) {
+        const updatedItems = category.items.map(item => {
+          if (item.id === currentTask.id) {
+            return currentTask;
+          }
+          return item;
+        });
+        return { ...category, items: updatedItems };
+      }
+      return category;
+    });
+    
+    setPackingList({ ...packingList, categories: updatedCategories });
+    
+    toast({
+      title: "Task Updated",
+      description: `"${currentTask.name}" has been updated.`,
+    });
+    
+    setIsEditTaskOpen(false);
+    setCurrentTask(null);
+  };
+  
+  const handleDeleteTask = (taskId: string) => {
+    // Find the task category first
+    let taskCategory: Category | null = null;
+    
+    for (const category of packingList.categories) {
+      if (category.items.some(item => item.id === taskId)) {
+        taskCategory = category;
+        break;
+      }
+    }
+    
+    if (!taskCategory) return;
+    
+    // Remove the task from the category
+    const updatedCategories = packingList.categories.map(category => {
+      if (category.id === taskCategory?.id) {
+        return {
+          ...category,
+          items: category.items.filter(item => item.id !== taskId)
+        };
+      }
+      return category;
+    });
+    
+    setPackingList({ ...packingList, categories: updatedCategories });
+    
+    toast({
+      title: "Task Deleted",
+      description: "The task has been removed from the packing list.",
+    });
+  };
+  
+  const handleEditTaskClick = (taskId: string) => {
+    // Find the task in the categories
+    let task: PackingTask | null = null;
+    
+    packingList.categories.forEach(category => {
+      const found = category.items.find(item => item.id === taskId);
+      if (found) {
+        task = found;
+      }
+    });
+    
+    if (task) {
+      setCurrentTask(task);
+      setIsEditTaskOpen(true);
+    }
+  };
+  
+  const handleDownloadChart = (memberId: string) => {
+    const memberName = memberTaskProgress[memberId as keyof typeof memberTaskProgress]?.name || 'Member';
+    
+    toast({
+      title: "Downloading Chart",
+      description: `${memberName}'s task progress chart would be downloaded as a PDF in a real app.`,
+    });
+  };
+  
+  const handleResolveConflict = (taskId: string) => {
+    setTaskConflicts(prev => prev.filter(conflict => conflict.taskId !== taskId));
+  };
+  
+  // Determine if the current user can edit based on role
+  const canEdit = user?.role === 'owner';
+  const isMember = user?.role === 'member';
+  
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-grow py-8">
         <div className="container mx-auto px-4">
+          {/* Display task conflicts/alerts if present */}
+          {user?.role === 'owner' && taskConflicts.map((conflict) => (
+            <DuplicateTaskAlert 
+              key={conflict.taskId}
+              taskName={conflict.taskName}
+              assignees={conflict.assignees}
+              onResolve={() => handleResolveConflict(conflict.taskId)}
+            />
+          ))}
+          
           <PackingListHeader
             title={packingList.title}
             description={packingList.description}
             status={packingList.status as any}
             date={packingList.date}
             members={packingList.members}
-            onEdit={handleEdit}
-            onShare={handleShare}
+            onEdit={canEdit ? handleEdit : undefined}
+            onShare={canEdit ? handleShare : undefined}
             onExport={handleExport}
+            onAddMember={canEdit ? () => setIsAddMemberOpen(true) : undefined}
           />
+          
+          {/* For owners, show all member progress charts */}
+          {canEdit && (
+            <div className="mb-8 mt-6">
+              <h2 className="text-xl font-semibold mb-4">Member Progress</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {Object.keys(memberTaskProgress).map((memberId) => (
+                  <TaskStatusChart
+                    key={memberId}
+                    progressData={memberTaskProgress[memberId as keyof typeof memberTaskProgress] as any}
+                    userName={memberTaskProgress[memberId as keyof typeof memberTaskProgress].name}
+                    onDownload={() => handleDownloadChart(memberId)}
+                    chartType="pie"
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* For members, show only their progress */}
+          {isMember && user && (
+            <div className="mb-8 mt-6">
+              <h2 className="text-xl font-semibold mb-4">Your Progress</h2>
+              <TaskStatusChart
+                progressData={{
+                  total: 5,
+                  packed: 3,
+                  delivered: 1,
+                  toPack: 1,
+                  percentage: 80
+                }}
+                userName={user.name}
+                onDownload={handleDownloadChart.bind(null, 'user1')}
+                chartType="bar"
+              />
+            </div>
+          )}
           
           <div>
             {packingList.categories.map(category => (
@@ -178,7 +531,11 @@ const PackingListDetail = () => {
                 key={category.id}
                 name={category.name}
                 icon={category.icon}
-                items={category.items}
+                items={category.items.map(item => ({
+                  ...item,
+                  onEdit: canEdit ? () => handleEditTaskClick(item.id) : undefined,
+                  onDelete: canEdit ? () => handleDeleteTask(item.id) : undefined
+                }))}
                 onItemStatusChange={handleItemStatusChange}
               />
             ))}
@@ -186,6 +543,109 @@ const PackingListDetail = () => {
         </div>
       </main>
       <Footer />
+      
+      {/* Add Member Dialog */}
+      <Dialog open={isAddMemberOpen} onOpenChange={setIsAddMemberOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Member to Packing List</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Select value={selectedMember} onValueChange={setSelectedMember}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a member" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Available Members</SelectLabel>
+                  {members.map(member => (
+                    <SelectItem key={member.id} value={member.id}>
+                      {member.name}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddMemberOpen(false)}>Cancel</Button>
+            <Button onClick={handleAddMember}>
+              <UserPlus className="h-4 w-4 mr-2" />
+              Add Member
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Edit Task Dialog */}
+      <Dialog open={isEditTaskOpen} onOpenChange={setIsEditTaskOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Task</DialogTitle>
+          </DialogHeader>
+          {currentTask && (
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium">Task Name</label>
+                <Input 
+                  value={currentTask.name} 
+                  onChange={(e) => setCurrentTask({...currentTask, name: e.target.value})}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Quantity</label>
+                <Input 
+                  type="number" 
+                  value={currentTask.quantity} 
+                  onChange={(e) => setCurrentTask({...currentTask, quantity: parseInt(e.target.value) || 1})}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Assignee</label>
+                <Select 
+                  value={currentTask.assigneeId} 
+                  onValueChange={(value) => {
+                    const member = members.find(m => m.id === value);
+                    setCurrentTask({
+                      ...currentTask, 
+                      assigneeId: value,
+                      assignee: member ? member.name : ''
+                    });
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Assign to member" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Members</SelectLabel>
+                      {members.map(member => (
+                        <SelectItem key={member.id} value={member.id}>
+                          {member.name}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Notes</label>
+                <Input 
+                  value={currentTask.notes || ''} 
+                  onChange={(e) => setCurrentTask({...currentTask, notes: e.target.value})}
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditTaskOpen(false)}>Cancel</Button>
+            <Button onClick={handleEditTask}>
+              <Edit className="h-4 w-4 mr-2" />
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

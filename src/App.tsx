@@ -15,6 +15,8 @@ import Templates from "./pages/Templates";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import Profile from "./pages/Profile";
+import AdminDashboard from "./pages/AdminDashboard";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +31,16 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/profile" element={
+              <RequireAuth>
+                <Profile />
+              </RequireAuth>
+            } />
+            <Route path="/admin" element={
+              <RequireAuth>
+                <AdminDashboard />
+              </RequireAuth>
+            } />
             <Route path="/dashboard" element={
               <RequireAuth>
                 <Dashboard />
