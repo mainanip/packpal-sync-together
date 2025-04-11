@@ -1,8 +1,10 @@
 
 import { Badge } from '@/components/ui/badge';
-import { Download, Users, Calendar, Eye } from 'lucide-react';
+import { Download, Users, Calendar, Eye, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PackingListStatus } from '@/components/dashboard/PackingListCard';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ViewerHeaderProps {
   title: string;
@@ -45,6 +47,14 @@ export const ViewerHeader = ({
   date,
   members
 }: ViewerHeaderProps) => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const listId = location.pathname.split('/').pop();
+  
+  const handleEditClick = () => {
+    navigate(`/lists/${listId}`);
+  };
+
   return (
     <div className="border-b pb-4 mb-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -74,7 +84,13 @@ export const ViewerHeader = ({
           </div>
         </div>
         
-        <div>
+        <div className="flex gap-2">
+          {user && (user.role === 'owner' || user.role === 'admin') && (
+            <Button variant="default" size="sm" onClick={handleEditClick}>
+              <Edit className="h-4 w-4 mr-1.5" />
+              Edit List
+            </Button>
+          )}
           <Button variant="outline" size="sm">
             <Download className="h-4 w-4 mr-1.5" />
             Download PDF

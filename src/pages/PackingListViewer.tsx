@@ -1,14 +1,16 @@
 
 import { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Navigate } from 'react-router-dom';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { ViewerHeader } from '@/components/viewer/ViewerHeader';
 import { ViewerCategorySection } from '@/components/viewer/ViewerCategorySection';
 import { ItemStatus } from '@/components/packing-list/PackingItem';
+import { useAuth } from '@/contexts/AuthContext';
 
 const PackingListViewer = () => {
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
   
   // In a real app, this data would be fetched from an API
   const [packingList] = useState({
@@ -112,6 +114,11 @@ const PackingListViewer = () => {
     ]
   });
   
+  // If the user is logged in with 'owner' or 'admin' role, redirect to the edit mode
+  if (user && (user.role === 'owner' || user.role === 'admin')) {
+    return <Navigate to={`/lists/${id}`} />;
+  }
+  
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -139,7 +146,15 @@ const PackingListViewer = () => {
           <div className="mt-8 p-4 border rounded-lg bg-muted/30">
             <div className="text-sm text-muted-foreground text-center">
               <p>You are viewing this list in read-only mode.</p>
-              <p>Contact the list owner to request edit permissions.</p>
+              {!user ? (
+                <p>
+                  <a href="/login" className="text-primary hover:underline">Login</a> to get edit access.
+                </p>
+              ) : user.role === 'viewer' ? (
+                <p>Contact the list owner to request edit permissions.</p>
+              ) : (
+                <p>You have view-only permissions for this list.</p>
+              )}
             </div>
           </div>
         </div>
