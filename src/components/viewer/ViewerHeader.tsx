@@ -1,19 +1,15 @@
 
-import { Button } from '@/components/ui/button';
-import { Share, Download, Users, Calendar, PenSquare, Eye } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { PackingListStatus } from '../dashboard/PackingListCard';
-import { Link } from 'react-router-dom';
+import { Download, Users, Calendar, Eye } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { PackingListStatus } from '@/components/dashboard/PackingListCard';
 
-interface PackingListHeaderProps {
+interface ViewerHeaderProps {
   title: string;
   description?: string;
   status: PackingListStatus;
   date: string;
   members: number;
-  onEdit: () => void;
-  onShare: () => void;
-  onExport: () => void;
 }
 
 const getStatusColor = (status: PackingListStatus) => {
@@ -42,19 +38,13 @@ const getStatusLabel = (status: PackingListStatus) => {
   }
 };
 
-export const PackingListHeader = ({
+export const ViewerHeader = ({
   title,
   description,
   status,
   date,
-  members,
-  onEdit,
-  onShare,
-  onExport
-}: PackingListHeaderProps) => {
-  // Get the current list ID from the URL
-  const listId = window.location.pathname.split('/').pop() || '';
-  
+  members
+}: ViewerHeaderProps) => {
   return (
     <div className="border-b pb-4 mb-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -77,27 +67,17 @@ export const PackingListHeader = ({
               <Users className="h-4 w-4" />
               <span>{members} members</span>
             </div>
+            <div className="flex items-center gap-1.5 text-sm text-packpal-purple">
+              <Eye className="h-4 w-4" />
+              <span>Viewer Mode</span>
+            </div>
           </div>
         </div>
         
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" onClick={onEdit}>
-            <PenSquare className="h-4 w-4 mr-1.5" />
-            Edit
-          </Button>
-          <Button variant="outline" size="sm" onClick={onShare}>
-            <Share className="h-4 w-4 mr-1.5" />
-            Share
-          </Button>
-          <Button variant="outline" size="sm" onClick={onExport}>
+        <div>
+          <Button variant="outline" size="sm">
             <Download className="h-4 w-4 mr-1.5" />
-            Export
-          </Button>
-          <Button asChild variant="outline" size="sm">
-            <Link to={`/view/${listId}`}>
-              <Eye className="h-4 w-4 mr-1.5" />
-              View Mode
-            </Link>
+            Download PDF
           </Button>
         </div>
       </div>
