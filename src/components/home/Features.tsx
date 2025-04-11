@@ -1,5 +1,5 @@
 
-import { CheckCircle, Users, Layers, Bell, FileText, Template } from 'lucide-react';
+import { CheckCircle, Users, Layers, Bell, FileText, BookTemplate } from 'lucide-react';
 
 export const Features = () => {
   const features = [
@@ -29,7 +29,7 @@ export const Features = () => {
       description: 'Generate PDF checklists for offline access and peace of mind.',
     },
     {
-      icon: <Template className="h-8 w-8 text-packpal-purple" />,
+      icon: <BookTemplate className="h-8 w-8 text-packpal-purple" />,
       title: 'Prebuilt Templates',
       description: 'Start quickly with templates for hackathons, vacations, and more.',
     }
