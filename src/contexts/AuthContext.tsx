@@ -36,26 +36,37 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const login = async (email: string, password: string, role: UserRole) => {
     try {
       setLoading(true);
-      // In a real app, this would be an API call
-      // Simulating authentication for now
-      const user: User = { 
-        id: Math.random().toString(36).substring(2, 9),
-        name: email.split('@')[0],
-        email,
-        role
-      };
       
-      localStorage.setItem('user', JSON.stringify(user));
-      setUser(user);
+      // Check if user exists and if the role matches
+      const storedUsers = localStorage.getItem('users');
+      let users: User[] = [];
       
-      toast({
-        title: "Login successful",
-        description: `Welcome back, ${user.name}!`,
-      });
-    } catch (error) {
+      if (storedUsers) {
+        users = JSON.parse(storedUsers);
+        const userMatch = users.find(u => u.email === email);
+        
+        if (!userMatch) {
+          throw new Error('User not found');
+        }
+        
+        if (userMatch.role !== role) {
+          throw new Error(`Invalid role. You registered as a ${userMatch.role}.`);
+        }
+        
+        localStorage.setItem('user', JSON.stringify(userMatch));
+        setUser(userMatch);
+        
+        toast({
+          title: "Login successful",
+          description: `Welcome back, ${userMatch.name}!`,
+        });
+      } else {
+        throw new Error('User not found');
+      }
+    } catch (error: any) {
       toast({
         title: "Login failed",
-        description: "Invalid credentials. Please try again.",
+        description: error.message || "Invalid credentials. Please try again.",
         variant: "destructive",
       });
       throw error;
@@ -67,26 +78,40 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signup = async (name: string, email: string, password: string, role: UserRole) => {
     try {
       setLoading(true);
-      // In a real app, this would be an API call
-      // Simulating registration for now
-      const user: User = { 
+      
+      // Store users in localStorage for persistence
+      const storedUsers = localStorage.getItem('users');
+      let users: User[] = [];
+      
+      if (storedUsers) {
+        users = JSON.parse(storedUsers);
+        
+        // Check if user already exists
+        if (users.some(u => u.email === email)) {
+          throw new Error('User already exists');
+        }
+      }
+      
+      const newUser: User = { 
         id: Math.random().toString(36).substring(2, 9),
         name,
         email,
         role
       };
       
-      localStorage.setItem('user', JSON.stringify(user));
-      setUser(user);
+      users.push(newUser);
+      localStorage.setItem('users', JSON.stringify(users));
+      localStorage.setItem('user', JSON.stringify(newUser));
+      setUser(newUser);
       
       toast({
         title: "Registration successful",
         description: `Welcome to PackPal, ${name}!`,
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Registration failed",
-        description: "Could not create account. Please try again.",
+        description: error.message || "Could not create account. Please try again.",
         variant: "destructive",
       });
       throw error;
