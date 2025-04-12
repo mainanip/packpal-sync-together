@@ -28,8 +28,13 @@ const RequireAuth = ({ children, allowedRoles }: RequireAuthProps) => {
       return <Navigate to="/admin" replace />;
     }
     
-    // If user is a member or viewer without access, redirect to dashboard
-    return <Navigate to="/dashboard" replace />;
+    // If user is a member, redirect to member dashboard
+    if (user.role === 'member') {
+      return <Navigate to="/dashboard" replace />;
+    }
+    
+    // If user is a viewer without access, redirect to viewer dashboard
+    return <Navigate to="/view" replace />;
   }
 
   return children;

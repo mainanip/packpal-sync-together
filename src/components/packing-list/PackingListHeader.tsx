@@ -11,9 +11,10 @@ interface PackingListHeaderProps {
   status: PackingListStatus;
   date: string;
   members: number;
-  onEdit: () => void;
-  onShare: () => void;
+  onEdit?: () => void;
+  onShare?: () => void;
   onExport: () => void;
+  onAddMember?: () => void;
 }
 
 const getStatusColor = (status: PackingListStatus) => {
@@ -50,7 +51,8 @@ export const PackingListHeader = ({
   members,
   onEdit,
   onShare,
-  onExport
+  onExport,
+  onAddMember
 }: PackingListHeaderProps) => {
   // Get the current list ID from the URL
   const listId = window.location.pathname.split('/').pop() || '';
@@ -81,14 +83,18 @@ export const PackingListHeader = ({
         </div>
         
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" onClick={onEdit}>
-            <PenSquare className="h-4 w-4 mr-1.5" />
-            Edit
-          </Button>
-          <Button variant="outline" size="sm" onClick={onShare}>
-            <Share className="h-4 w-4 mr-1.5" />
-            Share
-          </Button>
+          {onEdit && (
+            <Button variant="outline" size="sm" onClick={onEdit}>
+              <PenSquare className="h-4 w-4 mr-1.5" />
+              Edit
+            </Button>
+          )}
+          {onShare && (
+            <Button variant="outline" size="sm" onClick={onShare}>
+              <Share className="h-4 w-4 mr-1.5" />
+              Share
+            </Button>
+          )}
           <Button variant="outline" size="sm" onClick={onExport}>
             <Download className="h-4 w-4 mr-1.5" />
             Export
@@ -99,6 +105,12 @@ export const PackingListHeader = ({
               View Mode
             </Link>
           </Button>
+          {onAddMember && (
+            <Button variant="outline" size="sm" onClick={onAddMember}>
+              <Users className="h-4 w-4 mr-1.5" />
+              Add Member
+            </Button>
+          )}
         </div>
       </div>
     </div>

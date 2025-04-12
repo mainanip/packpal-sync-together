@@ -37,22 +37,26 @@ const App = () => (
               </RequireAuth>
             } />
             <Route path="/admin" element={
-              <RequireAuth>
+              <RequireAuth allowedRoles={['admin']}>
                 <AdminDashboard />
               </RequireAuth>
             } />
             <Route path="/dashboard" element={
-              <RequireAuth>
+              <RequireAuth allowedRoles={['owner', 'member', 'admin']}>
                 <Dashboard />
               </RequireAuth>
             } />
             <Route path="/lists/:id" element={
-              <RequireAuth>
+              <RequireAuth allowedRoles={['owner', 'member', 'admin']}>
                 <PackingListDetail />
               </RequireAuth>
             } />
             <Route path="/view/:id" element={<PackingListViewer />} />
-            <Route path="/templates" element={<Templates />} />
+            <Route path="/templates" element={
+              <RequireAuth allowedRoles={['owner', 'admin']}>
+                <Templates />
+              </RequireAuth>
+            } />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

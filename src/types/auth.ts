@@ -45,3 +45,9 @@ export interface UserTask {
   userId: string;
   taskId: string;
 }
+
+// Interface for task access permissions
+export interface TaskAccessControl {
+  canEdit: boolean;
+  canView: boolean;
+}

@@ -1,14 +1,22 @@
 
-import { PackingItem, ItemStatus, PackingItemProps } from './PackingItem';
+import { PackingItem, ItemStatus } from './PackingItem';
 import { Badge } from '@/components/ui/badge';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { PackingTask } from '@/types/auth';
+
+interface ExtendedPackingTask extends PackingTask {
+  category?: string;
+  onEdit?: () => void;
+  onDelete?: () => void;
+  disabled?: boolean;
+}
 
 interface CategorySectionProps {
   name: string;
   icon: string;
-  items: Omit<PackingItemProps, 'onStatusChange'>[];
+  items: ExtendedPackingTask[];
   onItemStatusChange: (id: string, status: ItemStatus) => void;
 }
 
@@ -50,8 +58,17 @@ export const CategorySection = ({
           {items.map((item) => (
             <PackingItem
               key={item.id}
-              {...item}
+              id={item.id}
+              name={item.name}
+              category={name} // Using category name as the category
+              status={item.status}
+              assignee={item.assignee}
+              quantity={item.quantity}
+              notes={item.notes}
               onStatusChange={onItemStatusChange}
+              onEdit={item.onEdit}
+              onDelete={item.onDelete}
+              disabled={item.disabled}
             />
           ))}
         </div>

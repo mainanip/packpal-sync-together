@@ -46,7 +46,7 @@ const Login = () => {
     defaultValues: {
       email: '',
       password: '',
-      role: 'owner' as UserRole,
+      role: 'owner',
     },
   });
 

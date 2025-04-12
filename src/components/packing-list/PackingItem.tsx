@@ -1,20 +1,29 @@
 
 import { useState } from 'react';
-import { Check, MoreVertical, User, Package2 } from 'lucide-react';
+import { Check, MoreVertical, User, Package2, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
 
 export type ItemStatus = 'to-pack' | 'packed' | 'delivered';
 
 export interface PackingItemProps {
   id: string;
   name: string;
-  category: string;
+  category: string; // This is needed for display purposes
   status: ItemStatus;
   assignee: string;
   quantity: number;
   notes?: string;
   onStatusChange: (id: string, status: ItemStatus) => void;
+  onEdit?: () => void;  // Optional edit handler
+  onDelete?: () => void; // Optional delete handler
+  disabled?: boolean;    // Optional disable flag for non-editable items
 }
 
 const getStatusStyle = (status: ItemStatus) => {
@@ -51,11 +60,16 @@ export const PackingItem = ({
   assignee,
   quantity,
   notes,
-  onStatusChange
+  onStatusChange,
+  onEdit,
+  onDelete,
+  disabled = false
 }: PackingItemProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   
   const handleStatusUpdate = () => {
+    if (disabled) return;
+    
     const nextStatus: Record<ItemStatus, ItemStatus> = {
       'to-pack': 'packed',
       'packed': 'delivered',
@@ -65,7 +79,7 @@ export const PackingItem = ({
   };
 
   return (
-    <div className="border rounded-lg overflow-hidden bg-card">
+    <div className={`border rounded-lg overflow-hidden bg-card ${disabled ? 'opacity-70' : ''}`}>
       <div className="p-4 flex items-center justify-between">
         <div className="flex items-center gap-3 overflow-hidden">
           <Button 
@@ -73,6 +87,7 @@ export const PackingItem = ({
             size="icon" 
             className={`h-8 w-8 shrink-0 ${status === 'delivered' ? 'bg-packpal-purple/10 text-packpal-purple' : ''}`} 
             onClick={handleStatusUpdate}
+            disabled={disabled}
           >
             {status === 'delivered' ? (
               <Check className="h-4 w-4" />
@@ -106,14 +121,39 @@ export const PackingItem = ({
             {getStatusLabel(status)}
           </span>
           
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="h-8 w-8" 
-            onClick={() => setIsExpanded(!isExpanded)}
-          >
-            <MoreVertical className="h-4 w-4" />
-          </Button>
+          {disabled ? (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8"
+              onClick={() => setIsExpanded(!isExpanded)}
+            >
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          ) : (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {onEdit && (
+                  <DropdownMenuItem onClick={onEdit}>
+                    <Edit className="h-4 w-4 mr-2" /> Edit
+                  </DropdownMenuItem>
+                )}
+                {onDelete && (
+                  <DropdownMenuItem onClick={onDelete} className="text-destructive">
+                    <Trash2 className="h-4 w-4 mr-2" /> Delete
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem onClick={() => setIsExpanded(!isExpanded)}>
+                  {isExpanded ? 'Hide Details' : 'Show Details'}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </div>
       

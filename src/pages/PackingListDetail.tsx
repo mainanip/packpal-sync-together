@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Navbar } from '@/components/layout/Navbar';
@@ -23,7 +22,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
-import { User, Trash2, UserPlus, Edit, Download } from 'lucide-react';
+import { User, Trash2, UserPlus, Edit, Download, BarChart } from 'lucide-react';
 
 // Type for a complete category with items
 interface Category {
@@ -43,7 +42,7 @@ interface TaskConflict {
 const PackingListDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { toast } = useToast();
-  const { user, users } = useAuth();
+  const { user } = useAuth();
   
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
   const [isEditTaskOpen, setIsEditTaskOpen] = useState(false);
@@ -78,7 +77,6 @@ const PackingListDetail = () => {
           {
             id: 'i1',
             name: 'Tent (3-person)',
-            category: 'Equipment',
             status: 'packed' as ItemStatus,
             assignee: 'Alex',
             assigneeId: 'user1',
@@ -91,7 +89,6 @@ const PackingListDetail = () => {
           {
             id: 'i2',
             name: 'Sleeping bags',
-            category: 'Equipment',
             status: 'packed' as ItemStatus,
             assignee: 'Jordan',
             assigneeId: 'user2',
@@ -104,7 +101,6 @@ const PackingListDetail = () => {
           {
             id: 'i3',
             name: 'Camping chairs',
-            category: 'Equipment',
             status: 'to-pack' as ItemStatus,
             assignee: 'Taylor',
             assigneeId: 'user3',
@@ -123,7 +119,6 @@ const PackingListDetail = () => {
           {
             id: 'i4',
             name: 'Portable stove',
-            category: 'Cooking',
             status: 'to-pack' as ItemStatus,
             assignee: 'Jordan',
             assigneeId: 'user2',
@@ -135,7 +130,6 @@ const PackingListDetail = () => {
           {
             id: 'i5',
             name: 'Cooler',
-            category: 'Cooking',
             status: 'delivered' as ItemStatus,
             assignee: 'Casey',
             assigneeId: 'user4',
@@ -148,7 +142,6 @@ const PackingListDetail = () => {
           {
             id: 'i6',
             name: 'Cooking utensils',
-            category: 'Cooking',
             status: 'packed' as ItemStatus,
             assignee: 'Alex',
             assigneeId: 'user1',
@@ -168,7 +161,6 @@ const PackingListDetail = () => {
           {
             id: 'i7',
             name: 'First aid kit',
-            category: 'Safety',
             status: 'delivered' as ItemStatus,
             assignee: 'Taylor',
             assigneeId: 'user3',
@@ -180,7 +172,6 @@ const PackingListDetail = () => {
           {
             id: 'i8',
             name: 'Flashlights',
-            category: 'Safety',
             status: 'to-pack' as ItemStatus,
             assignee: 'Casey',
             assigneeId: 'user4',
@@ -250,7 +241,6 @@ const PackingListDetail = () => {
     const conflicts: TaskConflict[] = [];
     assignmentMap.forEach((assignees, taskName) => {
       if (assignees.length > 1) {
-        // Find the task ID for this conflict
         let taskId = '';
         outer: for (const category of packingList.categories) {
           for (const item of category.items) {
@@ -273,7 +263,6 @@ const PackingListDetail = () => {
   }, [packingList]);
   
   const handleItemStatusChange = (itemId: string, newStatus: ItemStatus) => {
-    // Update the item status in our state
     const updatedCategories = packingList.categories.map(category => {
       const updatedItems = category.items.map(item => {
         if (item.id === itemId) {
@@ -286,18 +275,15 @@ const PackingListDetail = () => {
     
     setPackingList({ ...packingList, categories: updatedCategories });
     
-    // In a real app, this would also update the backend via an API call
     toast({
       title: "Item status updated",
       description: `Item has been marked as ${newStatus.replace('-', ' ')}`,
     });
     
-    // Update task progress - in a real app this would be calculated from the backend
     updateTaskProgress(itemId, newStatus);
   };
   
   const updateTaskProgress = (itemId: string, newStatus: ItemStatus) => {
-    // Find the assignee for this task
     let assigneeId = '';
     packingList.categories.forEach(category => {
       const item = category.items.find(i => i.id === itemId);
@@ -308,13 +294,11 @@ const PackingListDetail = () => {
     
     if (!assigneeId) return;
     
-    // Update progress data - in a real app this would be calculated on the backend
     setMemberTaskProgress(prev => {
       if (!prev[assigneeId as keyof typeof prev]) return prev;
       
       const memberProgress = {...prev[assigneeId as keyof typeof prev]};
       
-      // Update counts based on status change
       if (newStatus === 'packed') {
         memberProgress.packed += 1;
         memberProgress.toPack -= 1;
@@ -323,7 +307,6 @@ const PackingListDetail = () => {
         memberProgress.packed -= 1;
       }
       
-      // Recalculate percentage
       memberProgress.percentage = ((memberProgress.packed + memberProgress.delivered) / memberProgress.total) * 100;
       
       return {
@@ -357,7 +340,6 @@ const PackingListDetail = () => {
   const handleAddMember = () => {
     if (!selectedMember) return;
     
-    // In a real app, this would send an invitation to the member
     toast({
       title: "Member Added",
       description: `${selectedMember} has been added to this packing list.`,
@@ -370,7 +352,6 @@ const PackingListDetail = () => {
   const handleEditTask = () => {
     if (!currentTask) return;
     
-    // Find the task and update it
     const updatedCategories = packingList.categories.map(category => {
       if (category.id === currentTask.categoryId) {
         const updatedItems = category.items.map(item => {
@@ -396,7 +377,6 @@ const PackingListDetail = () => {
   };
   
   const handleDeleteTask = (taskId: string) => {
-    // Find the task category first
     let taskCategory: Category | null = null;
     
     for (const category of packingList.categories) {
@@ -408,7 +388,6 @@ const PackingListDetail = () => {
     
     if (!taskCategory) return;
     
-    // Remove the task from the category
     const updatedCategories = packingList.categories.map(category => {
       if (category.id === taskCategory?.id) {
         return {
@@ -428,7 +407,6 @@ const PackingListDetail = () => {
   };
   
   const handleEditTaskClick = (taskId: string) => {
-    // Find the task in the categories
     let task: PackingTask | null = null;
     
     packingList.categories.forEach(category => {
@@ -457,17 +435,23 @@ const PackingListDetail = () => {
     setTaskConflicts(prev => prev.filter(conflict => conflict.taskId !== taskId));
   };
   
-  // Determine if the current user can edit based on role
-  const canEdit = user?.role === 'owner';
+  const isOwner = user?.role === 'owner';
+  const isAdmin = user?.role === 'admin';
   const isMember = user?.role === 'member';
+  const isViewer = user?.role === 'viewer';
+  
+  const canEditTask = (assigneeId?: string) => {
+    if (isOwner || isAdmin) return true;
+    if (isMember && user && assigneeId === user.id) return true;
+    return false;
+  };
   
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-grow py-8">
         <div className="container mx-auto px-4">
-          {/* Display task conflicts/alerts if present */}
-          {user?.role === 'owner' && taskConflicts.map((conflict) => (
+          {isOwner && taskConflicts.map((conflict) => (
             <DuplicateTaskAlert 
               key={conflict.taskId}
               taskName={conflict.taskName}
@@ -479,24 +463,23 @@ const PackingListDetail = () => {
           <PackingListHeader
             title={packingList.title}
             description={packingList.description}
-            status={packingList.status as any}
+            status={packingList.status}
             date={packingList.date}
             members={packingList.members}
-            onEdit={canEdit ? handleEdit : undefined}
-            onShare={canEdit ? handleShare : undefined}
+            onEdit={isOwner ? handleEdit : undefined}
+            onShare={isOwner ? handleShare : undefined}
             onExport={handleExport}
-            onAddMember={canEdit ? () => setIsAddMemberOpen(true) : undefined}
+            onAddMember={isOwner ? () => setIsAddMemberOpen(true) : undefined}
           />
           
-          {/* For owners, show all member progress charts */}
-          {canEdit && (
+          {isOwner && (
             <div className="mb-8 mt-6">
               <h2 className="text-xl font-semibold mb-4">Member Progress</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {Object.keys(memberTaskProgress).map((memberId) => (
                   <TaskStatusChart
                     key={memberId}
-                    progressData={memberTaskProgress[memberId as keyof typeof memberTaskProgress] as any}
+                    progressData={memberTaskProgress[memberId as keyof typeof memberTaskProgress]}
                     userName={memberTaskProgress[memberId as keyof typeof memberTaskProgress].name}
                     onDownload={() => handleDownloadChart(memberId)}
                     chartType="pie"
@@ -506,7 +489,6 @@ const PackingListDetail = () => {
             </div>
           )}
           
-          {/* For members, show only their progress */}
           {isMember && user && (
             <div className="mb-8 mt-6">
               <h2 className="text-xl font-semibold mb-4">Your Progress</h2>
@@ -519,7 +501,7 @@ const PackingListDetail = () => {
                   percentage: 80
                 }}
                 userName={user.name}
-                onDownload={handleDownloadChart.bind(null, 'user1')}
+                onDownload={() => handleDownloadChart(user.id)}
                 chartType="bar"
               />
             </div>
@@ -531,11 +513,16 @@ const PackingListDetail = () => {
                 key={category.id}
                 name={category.name}
                 icon={category.icon}
-                items={category.items.map(item => ({
-                  ...item,
-                  onEdit: canEdit ? () => handleEditTaskClick(item.id) : undefined,
-                  onDelete: canEdit ? () => handleDeleteTask(item.id) : undefined
-                }))}
+                items={category.items.map(item => {
+                  const canEdit = canEditTask(item.assigneeId);
+                  
+                  return {
+                    ...item,
+                    onEdit: canEdit ? () => handleEditTaskClick(item.id) : undefined,
+                    onDelete: isOwner ? () => handleDeleteTask(item.id) : undefined,
+                    disabled: isMember && user && item.assigneeId !== user.id
+                  };
+                })}
                 onItemStatusChange={handleItemStatusChange}
               />
             ))}
@@ -544,7 +531,6 @@ const PackingListDetail = () => {
       </main>
       <Footer />
       
-      {/* Add Member Dialog */}
       <Dialog open={isAddMemberOpen} onOpenChange={setIsAddMemberOpen}>
         <DialogContent>
           <DialogHeader>
@@ -577,7 +563,6 @@ const PackingListDetail = () => {
         </DialogContent>
       </Dialog>
       
-      {/* Edit Task Dialog */}
       <Dialog open={isEditTaskOpen} onOpenChange={setIsEditTaskOpen}>
         <DialogContent>
           <DialogHeader>
