@@ -23,9 +23,14 @@ const RequireAuth = ({ children, allowedRoles }: RequireAuthProps) => {
 
   // If roles are specified, check if the user has one of the allowed roles
   if (allowedRoles && user && !allowedRoles.includes(user.role)) {
-    // If user is an admin trying to access owner content, redirect to admin dashboard
+    // If user is an admin, redirect to admin dashboard
     if (user.role === 'admin') {
       return <Navigate to="/admin" replace />;
+    }
+    
+    // If user is an owner, redirect to dashboard
+    if (user.role === 'owner') {
+      return <Navigate to="/dashboard" replace />;
     }
     
     // If user is a member, redirect to member dashboard
@@ -33,7 +38,7 @@ const RequireAuth = ({ children, allowedRoles }: RequireAuthProps) => {
       return <Navigate to="/dashboard" replace />;
     }
     
-    // If user is a viewer without access, redirect to viewer dashboard
+    // If user is a viewer, redirect to viewer dashboard
     return <Navigate to="/view" replace />;
   }
 

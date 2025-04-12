@@ -11,11 +11,13 @@ import { Plus, Download } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '@/contexts/AuthContext';
 import { TaskStatusChart } from '@/components/tasks/TaskStatusChart';
+import { CreateListModal } from '@/components/dashboard/CreateListModal';
 
 const Dashboard = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   
   // Sample data - in a real app this would come from an API
   const [packingLists, setPackingLists] = useState<PackingListItemProps[]>([
@@ -65,19 +67,12 @@ const Dashboard = () => {
   };
   
   const handleCreateList = () => {
-    // In a real app, this would open a modal or navigate to a create page
-    toast({
-      title: "Create New Packing List",
-      description: "This would open a creation form in a real app.",
-    });
+    setIsCreateModalOpen(true);
   };
   
   const handleUseTemplate = (templateId: string) => {
-    const template = templates.find(t => t.id === templateId);
-    toast({
-      title: `Using Template: ${template?.name}`,
-      description: "This would create a new list from this template.",
-    });
+    setIsCreateModalOpen(true);
+    // In a real app, we would pre-select this template in the modal
   };
 
   const handleDownloadChart = () => {
@@ -151,6 +146,13 @@ const Dashboard = () => {
         </div>
       </main>
       <Footer />
+      
+      {/* Create New List Modal */}
+      <CreateListModal
+        open={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        templates={templates}
+      />
     </div>
   );
 };

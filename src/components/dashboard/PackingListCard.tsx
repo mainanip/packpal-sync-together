@@ -1,9 +1,14 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
-import { Users, Calendar, MoreVertical, Package } from 'lucide-react';
+import { Users, Calendar, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { MoreOptionsMenu } from './MoreOptionsMenu';
+import { AssignTaskModal } from './AssignTaskModal';
+import { EditPackingListModal } from './EditPackingListModal';
+import { useAuth } from '@/contexts/AuthContext';
 
 export type PackingListStatus = 'in-progress' | 'completed' | 'not-started';
 
@@ -44,6 +49,13 @@ const getStatusLabel = (status: PackingListStatus) => {
 };
 
 export const PackingListCard = ({ id, title, totalItems, packedItems, members, date, status }: PackingListItemProps) => {
+  const [isAssignTaskModalOpen, setIsAssignTaskModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const { user } = useAuth();
+  
+  // Only owners can assign tasks or edit lists
+  const isOwner = user?.role === 'owner';
+  
   return (
     <Card className="card-hover">
       <CardHeader className="p-4 flex flex-row justify-between items-start">
@@ -82,11 +94,31 @@ export const PackingListCard = ({ id, title, totalItems, packedItems, members, d
         <Button asChild variant="outline" size="sm">
           <Link to={`/lists/${id}`}>View Details</Link>
         </Button>
-        <Button variant="ghost" size="icon" className="h-8 w-8">
-          <MoreVertical className="h-4 w-4" />
-          <span className="sr-only">Actions</span>
-        </Button>
+        
+        {isOwner && (
+          <MoreOptionsMenu
+            onAssignTask={() => setIsAssignTaskModalOpen(true)}
+            onEditList={() => setIsEditModalOpen(true)}
+          />
+        )}
       </CardFooter>
+      
+      {/* Modals */}
+      <AssignTaskModal
+        open={isAssignTaskModalOpen}
+        onClose={() => setIsAssignTaskModalOpen(false)}
+        packingListId={id}
+        packingListTitle={title}
+      />
+      
+      <EditPackingListModal
+        open={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        packingListId={id}
+        title={title}
+        date={date}
+        members={members}
+      />
     </Card>
   );
 };
