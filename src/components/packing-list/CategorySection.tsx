@@ -1,4 +1,5 @@
 
+<<<<<<< HEAD
 // import { PackingItem, ItemStatus, PackingItemProps } from './PackingItem';
 // import { Badge } from '@/components/ui/badge';
 // import { ChevronDown, ChevronUp } from 'lucide-react';
@@ -60,16 +61,30 @@
 //   );
 // };
 import { PackingItem, ItemStatus, PackingItemProps } from './PackingItem';
+=======
+import { PackingItem, ItemStatus } from './PackingItem';
+>>>>>>> e546ee96121b931d656602354d30808e00fc1667
 import { Badge } from '@/components/ui/badge';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+<<<<<<< HEAD
 import { useAuth } from '@/contexts/AuthContext';
+=======
+import { PackingTask } from '@/types/auth';
+
+interface ExtendedPackingTask extends PackingTask {
+  category?: string;
+  onEdit?: () => void;
+  onDelete?: () => void;
+  disabled?: boolean;
+}
+>>>>>>> e546ee96121b931d656602354d30808e00fc1667
 
 interface CategorySectionProps {
   name: string;
   icon: string;
-  items: Omit<PackingItemProps, 'onStatusChange'>[];
+  items: ExtendedPackingTask[];
   onItemStatusChange: (id: string, status: ItemStatus) => void;
 }
 
@@ -112,9 +127,21 @@ export const CategorySection = ({
           {items.map((item) => (
             <PackingItem
               key={item.id}
-              {...item}
+              id={item.id}
+              name={item.name}
+              category={name} // Using category name as the category
+              status={item.status}
+              assignee={item.assignee}
+              quantity={item.quantity}
+              notes={item.notes}
               onStatusChange={onItemStatusChange}
+<<<<<<< HEAD
               editable={item.assignee === user?.id}
+=======
+              onEdit={item.onEdit}
+              onDelete={item.onDelete}
+              disabled={item.disabled}
+>>>>>>> e546ee96121b931d656602354d30808e00fc1667
             />
           ))}
         </div>

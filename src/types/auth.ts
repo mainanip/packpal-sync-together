@@ -45,3 +45,41 @@ export interface UserTask {
   userId: string;
   taskId: string;
 }
+
+// Interface for task access permissions
+export interface TaskAccessControl {
+  canEdit: boolean;
+  canView: boolean;
+  canAssign: boolean;
+  canDelete: boolean;
+  isOwner: boolean;
+}
+
+// Interface for packing list
+export interface PackingList {
+  id: string;
+  title: string;
+  description?: string;
+  date: string;
+  status: 'in-progress' | 'completed' | 'not-started';
+  ownerId: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+// Interface for member assignment to lists
+export interface ListMember {
+  listId: string;
+  userId: string;
+  role: 'owner' | 'member' | 'viewer';
+  addedAt: string;
+}
+
+// Interface for categories in packing lists
+export interface TaskCategory {
+  id: string;
+  name: string;
+  icon: string;
+  listId: string;
+  createdAt: string;
+}

@@ -168,10 +168,14 @@ import { Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { TaskStatusChart } from '@/components/tasks/TaskStatusChart';
+<<<<<<< HEAD
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+=======
+import { CreateListModal } from '@/components/dashboard/CreateListModal';
+>>>>>>> e546ee96121b931d656602354d30808e00fc1667
 
 export interface PackingListItemProps {
   id: string;
@@ -301,7 +305,14 @@ const Dashboard = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
+<<<<<<< HEAD
 
+=======
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
+  
+  // Sample data - in a real app this would come from an API
+>>>>>>> e546ee96121b931d656602354d30808e00fc1667
   const [packingLists, setPackingLists] = useState<PackingListItemProps[]>([
     {
       id: '1',
@@ -351,6 +362,7 @@ const Dashboard = () => {
         Math.max(packingLists.reduce((sum, list) => sum + list.totalItems, 0), 1)) * 100
     )
   };
+<<<<<<< HEAD
 
   const handleAssignTasks = (list: PackingListItemProps) => {
     setSelectedList(list);
@@ -389,6 +401,12 @@ const Dashboard = () => {
       description: `Tasks have been assigned to ${assignedMemberIds.size} members.`,
     });
     setShowAssignModal(false);
+=======
+  
+  const handleCreateList = () => {
+    setSelectedTemplateId(null);
+    setIsCreateModalOpen(true);
+>>>>>>> e546ee96121b931d656602354d30808e00fc1667
   };
 
   const handleTaskStatusChange = (listId: string, taskId: string, newStatus: 'to-pack' | 'packed' | 'delivered') => {
@@ -422,6 +440,7 @@ const Dashboard = () => {
   };
 
   const handleUseTemplate = (templateId: string) => {
+<<<<<<< HEAD
     const template = templates.find(t => t.id === templateId);
     if (template) {
       const newList: PackingListItemProps = {
@@ -469,6 +488,30 @@ const Dashboard = () => {
     });
   };
 
+=======
+    setSelectedTemplateId(templateId);
+    setIsCreateModalOpen(true);
+  };
+
+  const handleDownloadChart = () => {
+    toast({
+      title: "Downloading Chart",
+      description: "This would download the chart as a PDF in a real app.",
+    });
+  };
+  
+  const handleAddNewList = (newList: PackingListItemProps) => {
+    // Add the new list to the packingLists array
+    setPackingLists(prevLists => [newList, ...prevLists]);
+    
+    toast({
+      title: "New List Added",
+      description: `"${newList.title}" has been added to your dashboard.`,
+    });
+  };
+  
+  // Redirect admin users to the admin dashboard
+>>>>>>> e546ee96121b931d656602354d30808e00fc1667
   useEffect(() => {
     if (user?.role === 'admin') navigate('/admin');
   }, [user, navigate]);
@@ -540,6 +583,7 @@ const Dashboard = () => {
         </div>
       </main>
       <Footer />
+<<<<<<< HEAD
 
       {showAssignModal && selectedList && (
         <AssignTasksModal
@@ -549,6 +593,16 @@ const Dashboard = () => {
           onSave={handleSaveAssignments}
         />
       )}
+=======
+      
+      {/* Create New List Modal */}
+      <CreateListModal
+        open={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        templates={templates}
+        onCreateList={handleAddNewList}
+      />
+>>>>>>> e546ee96121b931d656602354d30808e00fc1667
     </div>
   );
 };

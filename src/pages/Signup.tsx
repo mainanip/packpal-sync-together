@@ -243,7 +243,11 @@ const Signup = () => {
       name: '',
       email: '',
       password: '',
+<<<<<<< HEAD
       role: 'owner', // Remove the type assertion here
+=======
+      role: 'owner',
+>>>>>>> e546ee96121b931d656602354d30808e00fc1667
     },
   });
 

@@ -128,22 +128,34 @@
 //   );
 // };
 import { useState } from 'react';
-import { Check, MoreVertical, User, Package2 } from 'lucide-react';
+import { Check, MoreVertical, User, Package2, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
 
 export type ItemStatus = 'to-pack' | 'packed' | 'delivered';
 
 export interface PackingItemProps {
   id: string;
   name: string;
-  category: string;
+  category: string; // This is needed for display purposes
   status: ItemStatus;
   assignee: string;
   quantity: number;
   notes?: string;
   onStatusChange: (id: string, status: ItemStatus) => void;
+<<<<<<< HEAD
   editable?: boolean;
+=======
+  onEdit?: () => void;  // Optional edit handler
+  onDelete?: () => void; // Optional delete handler
+  disabled?: boolean;    // Optional disable flag for non-editable items
+>>>>>>> e546ee96121b931d656602354d30808e00fc1667
 }
 
 const getStatusStyle = (status: ItemStatus) => {
@@ -181,12 +193,23 @@ export const PackingItem = ({
   quantity,
   notes,
   onStatusChange,
+<<<<<<< HEAD
   editable = true
+=======
+  onEdit,
+  onDelete,
+  disabled = false
+>>>>>>> e546ee96121b931d656602354d30808e00fc1667
 }: PackingItemProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   
   const handleStatusUpdate = () => {
+<<<<<<< HEAD
     if (!editable) return;
+=======
+    if (disabled) return;
+    
+>>>>>>> e546ee96121b931d656602354d30808e00fc1667
     const nextStatus: Record<ItemStatus, ItemStatus> = {
       'to-pack': 'packed',
       'packed': 'delivered',
@@ -196,12 +219,17 @@ export const PackingItem = ({
   };
 
   return (
+<<<<<<< HEAD
     <div className={`border rounded-lg overflow-hidden bg-card ${!editable ? 'opacity-80' : ''}`}>
+=======
+    <div className={`border rounded-lg overflow-hidden bg-card ${disabled ? 'opacity-70' : ''}`}>
+>>>>>>> e546ee96121b931d656602354d30808e00fc1667
       <div className="p-4 flex items-center justify-between">
         <div className="flex items-center gap-3 overflow-hidden">
           <div 
             className={`h-8 w-8 flex items-center justify-center shrink-0 rounded-md ${editable ? 'cursor-pointer hover:bg-muted' : ''}`}
             onClick={handleStatusUpdate}
+            disabled={disabled}
           >
             {status === 'delivered' ? (
               <Check className="h-4 w-4 text-green-500" />
@@ -235,15 +263,49 @@ export const PackingItem = ({
             {getStatusLabel(status)}
           </span>
           
+<<<<<<< HEAD
           {(notes || editable) && (
             <Button 
               variant="ghost" 
               size="icon" 
               className="h-8 w-8" 
+=======
+          {disabled ? (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8"
+>>>>>>> e546ee96121b931d656602354d30808e00fc1667
               onClick={() => setIsExpanded(!isExpanded)}
             >
               <MoreVertical className="h-4 w-4" />
             </Button>
+<<<<<<< HEAD
+=======
+          ) : (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {onEdit && (
+                  <DropdownMenuItem onClick={onEdit}>
+                    <Edit className="h-4 w-4 mr-2" /> Edit
+                  </DropdownMenuItem>
+                )}
+                {onDelete && (
+                  <DropdownMenuItem onClick={onDelete} className="text-destructive">
+                    <Trash2 className="h-4 w-4 mr-2" /> Delete
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem onClick={() => setIsExpanded(!isExpanded)}>
+                  {isExpanded ? 'Hide Details' : 'Show Details'}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+>>>>>>> e546ee96121b931d656602354d30808e00fc1667
           )}
         </div>
       </div>
