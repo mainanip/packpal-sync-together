@@ -24,11 +24,22 @@ interface EditPackingListModalProps {
 }
 
 // Mock list members - in a real app, this would come from an API
-const mockListMembers: User[] = [
-  { id: "1", name: "John Doe", email: "john@example.com", role: "member" },
-  { id: "2", name: "Jane Smith", email: "jane@example.com", role: "member" },
-  { id: "3", name: "Bob Johnson", email: "bob@example.com", role: "member" },
-];
+const mockListMembersData: Record<string, User[]> = {
+  "1": [
+    { id: "1", name: "John Doe", email: "john@example.com", role: "member" },
+    { id: "2", name: "Jane Smith", email: "jane@example.com", role: "member" },
+    { id: "3", name: "Bob Johnson", email: "bob@example.com", role: "member" },
+  ],
+  "2": [
+    { id: "1", name: "John Doe", email: "john@example.com", role: "member" },
+    { id: "3", name: "Bob Johnson", email: "bob@example.com", role: "member" },
+  ],
+  "3": [
+    { id: "2", name: "Jane Smith", email: "jane@example.com", role: "member" },
+    { id: "3", name: "Bob Johnson", email: "bob@example.com", role: "member" },
+    { id: "4", name: "Alice Brown", email: "alice@example.com", role: "member" },
+  ]
+};
 
 export const EditPackingListModal = ({
   open,
@@ -41,6 +52,7 @@ export const EditPackingListModal = ({
   const [title, setTitle] = useState(initialTitle);
   const [date, setDate] = useState(initialDate);
   const [description, setDescription] = useState("");
+  const [listMembers, setListMembers] = useState<User[]>(mockListMembersData[packingListId] || []);
   const { toast } = useToast();
 
   const handleSave = () => {
@@ -59,10 +71,17 @@ export const EditPackingListModal = ({
       description: `"${title}" has been updated successfully.`,
     });
     
+    // Update mockListMembersData with current listMembers
+    mockListMembersData[packingListId] = listMembers;
+    
     onClose();
   };
 
   const handleRemoveMember = (memberId: string) => {
+    // Update the local state to remove the member
+    const updatedMembers = listMembers.filter(member => member.id !== memberId);
+    setListMembers(updatedMembers);
+    
     // In a real app, this would make an API call to remove a member
     toast({
       title: "Member Removed",
@@ -110,23 +129,27 @@ export const EditPackingListModal = ({
           </div>
           
           <div>
-            <h3 className="font-medium mb-3">Members ({mockListMembers.length})</h3>
+            <h3 className="font-medium mb-3">Members ({listMembers.length})</h3>
             <div className="space-y-2 max-h-[200px] overflow-auto">
-              {mockListMembers.map((member) => (
-                <div key={member.id} className="flex items-center justify-between border rounded-md p-2">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">{member.name}</span>
-                    <span className="text-xs text-muted-foreground">{member.email}</span>
+              {listMembers.length > 0 ? (
+                listMembers.map((member) => (
+                  <div key={member.id} className="flex items-center justify-between border rounded-md p-2">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{member.name}</span>
+                      <span className="text-xs text-muted-foreground">{member.email}</span>
+                    </div>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleRemoveMember(member.id)}
+                    >
+                      Remove
+                    </Button>
                   </div>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => handleRemoveMember(member.id)}
-                  >
-                    Remove
-                  </Button>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">No members in this list.</p>
+              )}
             </div>
           </div>
         </div>

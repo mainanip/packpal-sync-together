@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -15,23 +15,72 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
 import { TemplateType } from "@/components/dashboard/TemplateSummary";
+import { PackingListItemProps } from "@/components/dashboard/PackingListCard";
+
+// Template data - this would typically come from an API
+const templateDetails: Record<string, {title: string, date: string, description: string}> = {
+  't1': {
+    title: 'Weekend Getaway',
+    date: 'This Weekend',
+    description: 'Everything you need for a quick weekend trip.'
+  },
+  't2': {
+    title: 'Hackathon',
+    date: 'Next Event',
+    description: 'All the tech gear and essentials for a productive hackathon.'
+  },
+  't3': {
+    title: 'Camping Trip',
+    date: 'Upcoming',
+    description: 'Complete packing list for an outdoor camping adventure.'
+  },
+  't4': {
+    title: 'Beach Day',
+    date: 'Summer',
+    description: 'Everything you need for a fun day at the beach.'
+  },
+  'custom': {
+    title: '',
+    date: '',
+    description: ''
+  }
+};
 
 interface CreateListModalProps {
   open: boolean;
   onClose: () => void;
   templates: TemplateType[];
+  onCreateList?: (newList: PackingListItemProps) => void;
 }
 
 export const CreateListModal = ({
   open,
   onClose,
   templates,
+  onCreateList
 }: CreateListModalProps) => {
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
   const [description, setDescription] = useState("");
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const { toast } = useToast();
+
+  // Apply template values when a template is selected
+  useEffect(() => {
+    if (selectedTemplate && selectedTemplate !== "custom") {
+      const template = templateDetails[selectedTemplate];
+      if (template) {
+        setTitle(template.title);
+        setDate(template.date);
+        setDescription(template.description);
+      }
+    } else if (selectedTemplate === "custom") {
+      // Clear the form for custom template
+      setTitle("");
+      setDate("");
+      setDescription("");
+    }
+  }, [selectedTemplate]);
 
   const handleCreateList = () => {
     if (!title) {
@@ -44,8 +93,24 @@ export const CreateListModal = ({
     }
 
     const templateName = selectedTemplate 
-      ? templates.find(t => t.id === selectedTemplate)?.name 
+      ? templates.find(t => t.id === selectedTemplate)?.name || "custom"
       : "custom";
+
+    // Create a new packing list object
+    const newList: PackingListItemProps = {
+      id: `list-${Date.now()}`, // Generate a unique ID
+      title: title,
+      totalItems: 0,
+      packedItems: 0,
+      members: 0,
+      date: date || 'No date specified',
+      status: 'not-started'
+    };
+
+    // Call the onCreateList callback to add this to the dashboard
+    if (onCreateList) {
+      onCreateList(newList);
+    }
 
     // In a real app, this would make an API call to create a new list
     toast({

@@ -133,6 +133,11 @@ export const AssignTaskModal = ({
     }
   }, [packingListId]);
 
+  // Reset selected task when member changes
+  useEffect(() => {
+    setSelectedTask(null);
+  }, [selectedMember]);
+
   const handleAssign = () => {
     if (!selectedMember || !selectedTask) {
       toast({
@@ -148,6 +153,16 @@ export const AssignTaskModal = ({
     const task = availableTasks.find(t => t.id === selectedTask);
 
     if (member && task) {
+      // Update the mock data to reflect the assignment
+      const taskIndex = mockTasks[packingListId].findIndex(t => t.id === task.id);
+      if (taskIndex !== -1) {
+        mockTasks[packingListId][taskIndex].assignee = member.name;
+        mockTasks[packingListId][taskIndex].assigneeId = member.id;
+        
+        // Update availableTasks to remove the assigned task
+        setAvailableTasks(prevTasks => prevTasks.filter(t => t.id !== task.id));
+      }
+      
       toast({
         title: "Task Assigned",
         description: `"${task.name}" has been assigned to ${member.name}.`,

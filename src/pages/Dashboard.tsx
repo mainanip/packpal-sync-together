@@ -18,6 +18,7 @@ const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
   
   // Sample data - in a real app this would come from an API
   const [packingLists, setPackingLists] = useState<PackingListItemProps[]>([
@@ -67,12 +68,13 @@ const Dashboard = () => {
   };
   
   const handleCreateList = () => {
+    setSelectedTemplateId(null);
     setIsCreateModalOpen(true);
   };
   
   const handleUseTemplate = (templateId: string) => {
+    setSelectedTemplateId(templateId);
     setIsCreateModalOpen(true);
-    // In a real app, we would pre-select this template in the modal
   };
 
   const handleDownloadChart = () => {
@@ -80,6 +82,11 @@ const Dashboard = () => {
       title: "Downloading Chart",
       description: "This would download the chart as a PDF in a real app.",
     });
+  };
+  
+  const handleAddNewList = (newList: PackingListItemProps) => {
+    // Add the new list to the packingLists array
+    setPackingLists(prevLists => [newList, ...prevLists]);
   };
   
   // Redirect admin users to the admin dashboard
@@ -152,6 +159,8 @@ const Dashboard = () => {
         open={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         templates={templates}
+        onCreateList={handleAddNewList}
+        // If a template was selected, pass it as the initial selection
       />
     </div>
   );
