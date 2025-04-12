@@ -6,6 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -131,6 +132,9 @@ export const CreateListModal = ({
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Create New Packing List</DialogTitle>
+          <DialogDescription>
+            Fill out the form below to create a new packing list.
+          </DialogDescription>
         </DialogHeader>
         
         <div className="py-4 space-y-6">

@@ -87,6 +87,11 @@ const Dashboard = () => {
   const handleAddNewList = (newList: PackingListItemProps) => {
     // Add the new list to the packingLists array
     setPackingLists(prevLists => [newList, ...prevLists]);
+    
+    toast({
+      title: "New List Added",
+      description: `"${newList.title}" has been added to your dashboard.`,
+    });
   };
   
   // Redirect admin users to the admin dashboard
@@ -160,7 +165,6 @@ const Dashboard = () => {
         onClose={() => setIsCreateModalOpen(false)}
         templates={templates}
         onCreateList={handleAddNewList}
-        // If a template was selected, pass it as the initial selection
       />
     </div>
   );
