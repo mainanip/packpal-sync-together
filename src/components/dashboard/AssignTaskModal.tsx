@@ -125,11 +125,11 @@ export const AssignTaskModal = ({
   const [availableTasks, setAvailableTasks] = useState<PackingTask[]>([]);
   const { toast } = useToast();
 
-  // Load all tasks for the list, without filtering out already assigned ones
+  // Filter tasks that don't have an assignee
   useEffect(() => {
     if (packingListId) {
       const listTasks = mockTasks[packingListId] || [];
-      setAvailableTasks(listTasks);
+      setAvailableTasks(listTasks.filter(task => !task.assigneeId));
     }
   }, [packingListId]);
 
@@ -158,6 +158,9 @@ export const AssignTaskModal = ({
       if (taskIndex !== -1) {
         mockTasks[packingListId][taskIndex].assignee = member.name;
         mockTasks[packingListId][taskIndex].assigneeId = member.id;
+        
+        // Update availableTasks to remove the assigned task
+        setAvailableTasks(prevTasks => prevTasks.filter(t => t.id !== task.id));
       }
       
       toast({
@@ -217,13 +220,12 @@ export const AssignTaskModal = ({
                         <RadioGroupItem value={task.id} id={`task-${task.id}`} />
                         <Label htmlFor={`task-${task.id}`} className="cursor-pointer">
                           {task.name} (Qty: {task.quantity})
-                          {task.assignee && <span className="ml-2 text-xs text-muted-foreground">(Currently assigned to: {task.assignee})</span>}
                         </Label>
                       </div>
                     ))}
                   </RadioGroup>
                 ) : (
-                  <p className="text-sm text-muted-foreground">No available tasks in this list.</p>
+                  <p className="text-sm text-muted-foreground">No available tasks to assign.</p>
                 )}
               </div>
             )}
